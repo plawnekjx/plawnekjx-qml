@@ -1,10 +1,10 @@
-#ifndef FRIDAQML_VARIANT_H
-#define FRIDAQML_VARIANT_H
+#ifndef PLAWNEKJXQML_VARIANT_H
+#define PLAWNEKJXQML_VARIANT_H
 
-#include <frida-core.h>
+#include <plawnekjx-core.h>
 #include <QVariantMap>
 
-namespace Frida
+namespace Plawnekjx
 {
     QVariantMap parseParametersDict(GHashTable *dict);
     QVariant parseVariant(GVariant *v);

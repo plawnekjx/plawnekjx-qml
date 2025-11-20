@@ -1,7 +1,7 @@
-#ifndef FRIDAQML_APPLICATION_H
-#define FRIDAQML_APPLICATION_H
+#ifndef PLAWNEKJXQML_APPLICATION_H
+#define PLAWNEKJXQML_APPLICATION_H
 
-#include "fridafwd.h"
+#include "plawnekjxfwd.h"
 #include "iconprovider.h"
 
 #include <QObject>
@@ -19,7 +19,7 @@ class Application : public QObject
     QML_UNCREATABLE("Application objects cannot be instantiated from Qml");
 
 public:
-    explicit Application(FridaApplication *handle, QObject *parent = nullptr);
+    explicit Application(PlawnekjxApplication *handle, QObject *parent = nullptr);
     ~Application();
 
     QString identifier() const { return m_identifier; }

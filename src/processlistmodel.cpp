@@ -1,4 +1,4 @@
-#include <frida-core.h>
+#include <plawnekjx-core.h>
 
 #include "processlistmodel.h"
 
@@ -15,15 +15,15 @@ static const int ProcessIconsRole = Qt::UserRole + 2;
 struct EnumerateProcessesRequest
 {
     ProcessListModel *model;
-    FridaDevice *handle;
+    PlawnekjxDevice *handle;
 };
 
 ProcessListModel::ProcessListModel(QObject *parent) :
     QAbstractListModel(parent),
     m_isLoading(false),
-    m_scope(Frida::Scope::Minimal),
+    m_scope(Plawnekjx::Scope::Minimal),
     m_pendingRequest(nullptr),
-    m_mainContext(new MainContext(frida_get_main_context()))
+    m_mainContext(new MainContext(plawnekjx_get_main_context()))
 {
 }
 
@@ -56,7 +56,7 @@ void ProcessListModel::refresh()
     auto handle = m_device->handle();
     g_object_ref(handle);
 
-    auto scope = static_cast<FridaScope>(m_scope);
+    auto scope = static_cast<PlawnekjxScope>(m_scope);
 
     m_mainContext->schedule([this, handle, scope] () { enumerateProcesses(handle, scope); });
 }
@@ -77,7 +77,7 @@ void ProcessListModel::setDevice(Device *device)
     hardRefresh();
 }
 
-void ProcessListModel::setScope(Frida::Scope scope)
+void ProcessListModel::setScope(Plawnekjx::Scope scope)
 {
     if (scope == m_scope)
         return;
@@ -127,13 +127,13 @@ QVariant ProcessListModel::data(const QModelIndex &index, int role) const
 
 void ProcessListModel::hardRefresh()
 {
-    FridaDevice *handle = nullptr;
+    PlawnekjxDevice *handle = nullptr;
     if (m_device != nullptr) {
         handle = m_device->handle();
         g_object_ref(handle);
     }
 
-    auto scope = static_cast<FridaScope>(m_scope);
+    auto scope = static_cast<PlawnekjxScope>(m_scope);
 
     m_mainContext->schedule([=] () { finishHardRefresh(handle, scope); });
 
@@ -146,7 +146,7 @@ void ProcessListModel::hardRefresh()
     }
 }
 
-void ProcessListModel::finishHardRefresh(FridaDevice *handle, FridaScope scope)
+void ProcessListModel::finishHardRefresh(PlawnekjxDevice *handle, PlawnekjxScope scope)
 {
     m_pids.clear();
 
@@ -154,22 +154,22 @@ void ProcessListModel::finishHardRefresh(FridaDevice *handle, FridaScope scope)
         enumerateProcesses(handle, scope);
 }
 
-void ProcessListModel::enumerateProcesses(FridaDevice *handle, FridaScope scope)
+void ProcessListModel::enumerateProcesses(PlawnekjxDevice *handle, PlawnekjxScope scope)
 {
     QMetaObject::invokeMethod(this, "beginLoading", Qt::QueuedConnection);
 
     if (m_pendingRequest != nullptr)
         m_pendingRequest->model = nullptr;
 
-    auto options = frida_process_query_options_new();
-    frida_process_query_options_set_scope(options, scope);
+    auto options = plawnekjx_process_query_options_new();
+    plawnekjx_process_query_options_set_scope(options, scope);
 
     auto request = g_slice_new(EnumerateProcessesRequest);
     request->model = this;
     request->handle = handle;
     m_pendingRequest = request;
 
-    frida_device_enumerate_processes(handle, options, nullptr, onEnumerateReadyWrapper, request);
+    plawnekjx_device_enumerate_processes(handle, options, nullptr, onEnumerateReadyWrapper, request);
 
     g_object_unref(options);
 }
@@ -185,23 +185,23 @@ void ProcessListModel::onEnumerateReadyWrapper(GObject *obj, GAsyncResult *res, 
     g_slice_free(EnumerateProcessesRequest, request);
 }
 
-void ProcessListModel::onEnumerateReady(FridaDevice *handle, GAsyncResult *res)
+void ProcessListModel::onEnumerateReady(PlawnekjxDevice *handle, GAsyncResult *res)
 {
     m_pendingRequest = nullptr;
 
     QMetaObject::invokeMethod(this, "endLoading", Qt::QueuedConnection);
 
     GError *error = nullptr;
-    auto processHandles = frida_device_enumerate_processes_finish(handle, res, &error);
+    auto processHandles = plawnekjx_device_enumerate_processes_finish(handle, res, &error);
     if (error == nullptr) {
         QSet<unsigned int> current;
         QList<Process *> added;
         QSet<unsigned int> removed;
 
-        const int size = frida_process_list_size(processHandles);
+        const int size = plawnekjx_process_list_size(processHandles);
         for (int i = 0; i != size; i++) {
-            auto processHandle = frida_process_list_get(processHandles, i);
-            auto pid = frida_process_get_pid(processHandle);
+            auto processHandle = plawnekjx_process_list_get(processHandles, i);
+            auto pid = plawnekjx_process_get_pid(processHandle);
             current.insert(pid);
             if (!m_pids.contains(pid)) {
                 auto process = new Process(processHandle);

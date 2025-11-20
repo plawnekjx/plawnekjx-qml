@@ -1,5 +1,5 @@
-#ifndef FRIDAQML_SCRIPT_H
-#define FRIDAQML_SCRIPT_H
+#ifndef PLAWNEKJXQML_SCRIPT_H
+#define PLAWNEKJXQML_SCRIPT_H
 
 #include <QJsonArray>
 #include <QJsonObject>

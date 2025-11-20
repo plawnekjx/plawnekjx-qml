@@ -1,7 +1,7 @@
-#ifndef FRIDAQML_ICONPROVIDER_H
-#define FRIDAQML_ICONPROVIDER_H
+#ifndef PLAWNEKJXQML_ICONPROVIDER_H
+#define PLAWNEKJXQML_ICONPROVIDER_H
 
-#include "fridafwd.h"
+#include "plawnekjxfwd.h"
 
 #include <QHash>
 #include <QMutex>

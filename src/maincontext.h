@@ -1,7 +1,7 @@
-#ifndef FRIDAQML_MAINCONTEXT_H
-#define FRIDAQML_MAINCONTEXT_H
+#ifndef PLAWNEKJXQML_MAINCONTEXT_H
+#define PLAWNEKJXQML_MAINCONTEXT_H
 
-#include <frida-core.h>
+#include <plawnekjx-core.h>
 #include <functional>
 
 class MainContext

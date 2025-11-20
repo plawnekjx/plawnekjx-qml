@@ -1,9 +1,9 @@
-#ifndef FRIDAQML_APPLICATIONLISTMODEL_H
-#define FRIDAQML_APPLICATIONLISTMODEL_H
+#ifndef PLAWNEKJXQML_APPLICATIONLISTMODEL_H
+#define PLAWNEKJXQML_APPLICATIONLISTMODEL_H
 
-#include "frida.h"
+#include "plawnekjx.h"
 
-#include <frida-core.h>
+#include <plawnekjx-core.h>
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
@@ -21,7 +21,7 @@ class ApplicationListModel : public QAbstractListModel
     Q_PROPERTY(int count READ count NOTIFY countChanged)
     Q_PROPERTY(Device *device READ device WRITE setDevice NOTIFY deviceChanged)
     Q_PROPERTY(bool isLoading READ isLoading NOTIFY isLoadingChanged)
-    Q_PROPERTY(Frida::Scope scope READ scope WRITE setScope NOTIFY scopeChanged)
+    Q_PROPERTY(Plawnekjx::Scope scope READ scope WRITE setScope NOTIFY scopeChanged)
     QML_ELEMENT
 
 public:
@@ -38,8 +38,8 @@ public:
     Device *device() const;
     void setDevice(Device *device);
     bool isLoading() const { return m_isLoading; }
-    Frida::Scope scope() const { return m_scope; }
-    void setScope(Frida::Scope scope);
+    Plawnekjx::Scope scope() const { return m_scope; }
+    void setScope(Plawnekjx::Scope scope);
 
     QHash<int, QByteArray> roleNames() const override;
     int rowCount(const QModelIndex &parent) const override;
@@ -49,15 +49,15 @@ Q_SIGNALS:
     void countChanged(int newCount);
     void deviceChanged(Device *newDevice);
     void isLoadingChanged(bool newIsLoading);
-    void scopeChanged(Frida::Scope newScope);
+    void scopeChanged(Plawnekjx::Scope newScope);
     void error(QString message);
 
 private:
     void hardRefresh();
-    void finishHardRefresh(FridaDevice *handle, FridaScope scope);
-    void enumerateApplications(FridaDevice *handle, FridaScope scope);
+    void finishHardRefresh(PlawnekjxDevice *handle, PlawnekjxScope scope);
+    void enumerateApplications(PlawnekjxDevice *handle, PlawnekjxScope scope);
     static void onEnumerateReadyWrapper(GObject *obj, GAsyncResult *res, gpointer data);
-    void onEnumerateReady(FridaDevice *handle, GAsyncResult *res);
+    void onEnumerateReady(PlawnekjxDevice *handle, GAsyncResult *res);
 
     static int score(Application *application);
 
@@ -71,7 +71,7 @@ private:
     QPointer<Device> m_device;
     QList<Application *> m_applications;
     bool m_isLoading;
-    Frida::Scope m_scope;
+    Plawnekjx::Scope m_scope;
 
     EnumerateApplicationsRequest *m_pendingRequest;
     QSet<QString> m_identifiers;

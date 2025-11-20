@@ -1,6 +1,6 @@
 #include "variant.h"
 
-namespace Frida
+namespace Plawnekjx
 {
     QVariantMap parseParametersDict(GHashTable *dict)
     {

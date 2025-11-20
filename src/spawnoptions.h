@@ -1,7 +1,7 @@
-#ifndef FRIDAQML_SPAWNOPTIONS_H
-#define FRIDAQML_SPAWNOPTIONS_H
+#ifndef PLAWNEKJXQML_SPAWNOPTIONS_H
+#define PLAWNEKJXQML_SPAWNOPTIONS_H
 
-#include "fridafwd.h"
+#include "plawnekjxfwd.h"
 
 #include <QQmlEngine>
 
@@ -25,7 +25,7 @@ public:
     explicit SpawnOptions(QObject *parent = nullptr);
     ~SpawnOptions();
 
-    FridaSpawnOptions *handle() const { return m_handle; }
+    PlawnekjxSpawnOptions *handle() const { return m_handle; }
 
     bool hasArgv() const;
     QVector<QString> argv() const;
@@ -53,7 +53,7 @@ Q_SIGNALS:
     void cwdChanged(QString newCwd);
 
 private:
-    FridaSpawnOptions *m_handle;
+    PlawnekjxSpawnOptions *m_handle;
 };
 
 #endif

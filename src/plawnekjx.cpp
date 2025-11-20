@@ -1,21 +1,21 @@
-#include <frida-core.h>
+#include <plawnekjx-core.h>
 
-#include "frida.h"
+#include "plawnekjx.h"
 
 #include "device.h"
 #include "devicelistmodel.h"
 #include "maincontext.h"
 
-Frida *Frida::s_instance = nullptr;
+Plawnekjx *Plawnekjx::s_instance = nullptr;
 
-Frida::Frida(QObject *parent) :
+Plawnekjx::Plawnekjx(QObject *parent) :
     QObject(parent),
     m_localSystem(nullptr),
     m_mainContext(nullptr)
 {
-    frida_init();
+    plawnekjx_init();
 
-    m_mainContext.reset(new MainContext(frida_get_main_context()));
+    m_mainContext.reset(new MainContext(plawnekjx_get_main_context()));
     m_mainContext->schedule([this] () { initialize(); });
 
     QMutexLocker locker(&m_mutex);
@@ -23,19 +23,19 @@ Frida::Frida(QObject *parent) :
         m_localSystemAvailable.wait(&m_mutex);
 }
 
-void Frida::initialize()
+void Plawnekjx::initialize()
 {
-    m_handle = frida_device_manager_new();
+    m_handle = plawnekjx_device_manager_new();
 
-    frida_device_manager_get_device_by_type(m_handle, FRIDA_DEVICE_TYPE_LOCAL, 0, nullptr,
+    plawnekjx_device_manager_get_device_by_type(m_handle, PLAWNEKJX_DEVICE_TYPE_LOCAL, 0, nullptr,
         onGetLocalDeviceReadyWrapper, this);
 
     g_signal_connect_swapped(m_handle, "added", G_CALLBACK(onDeviceAddedWrapper), this);
     g_signal_connect_swapped(m_handle, "removed", G_CALLBACK(onDeviceRemovedWrapper), this);
-    frida_device_manager_enumerate_devices(m_handle, nullptr, onEnumerateDevicesReadyWrapper, this);
+    plawnekjx_device_manager_enumerate_devices(m_handle, nullptr, onEnumerateDevicesReadyWrapper, this);
 }
 
-void Frida::dispose()
+void Plawnekjx::dispose()
 {
     g_signal_handlers_disconnect_by_func(m_handle, GSIZE_TO_POINTER(onDeviceRemovedWrapper), this);
     g_signal_handlers_disconnect_by_func(m_handle, GSIZE_TO_POINTER(onDeviceAddedWrapper), this);
@@ -43,39 +43,39 @@ void Frida::dispose()
     m_handle = nullptr;
 }
 
-Frida::~Frida()
+Plawnekjx::~Plawnekjx()
 {
     m_localSystem = nullptr;
     qDeleteAll(m_deviceItems);
     m_deviceItems.clear();
 
-    frida_device_manager_close_sync(m_handle, nullptr, nullptr);
+    plawnekjx_device_manager_close_sync(m_handle, nullptr, nullptr);
     m_mainContext->perform([this] () { dispose(); });
     m_mainContext.reset();
 
     s_instance = nullptr;
 
-    frida_deinit();
+    plawnekjx_deinit();
 }
 
-Frida *Frida::instance()
+Plawnekjx *Plawnekjx::instance()
 {
     if (s_instance == nullptr)
-        s_instance = new Frida();
+        s_instance = new Plawnekjx();
     return s_instance;
 }
 
-void Frida::onGetLocalDeviceReadyWrapper(GObject *obj, GAsyncResult *res, gpointer data)
+void Plawnekjx::onGetLocalDeviceReadyWrapper(GObject *obj, GAsyncResult *res, gpointer data)
 {
     Q_UNUSED(obj);
 
-    static_cast<Frida *>(data)->onGetLocalDeviceReady(res);
+    static_cast<Plawnekjx *>(data)->onGetLocalDeviceReady(res);
 }
 
-void Frida::onGetLocalDeviceReady(GAsyncResult *res)
+void Plawnekjx::onGetLocalDeviceReady(GAsyncResult *res)
 {
     GError *error = nullptr;
-    FridaDevice *deviceHandle = frida_device_manager_get_device_by_type_finish(m_handle, res, &error);
+    PlawnekjxDevice *deviceHandle = plawnekjx_device_manager_get_device_by_type_finish(m_handle, res, &error);
     g_assert(error == nullptr);
 
     auto device = new Device(deviceHandle);
@@ -92,22 +92,22 @@ void Frida::onGetLocalDeviceReady(GAsyncResult *res)
     g_object_unref(deviceHandle);
 }
 
-void Frida::onEnumerateDevicesReadyWrapper(GObject *obj, GAsyncResult *res, gpointer data)
+void Plawnekjx::onEnumerateDevicesReadyWrapper(GObject *obj, GAsyncResult *res, gpointer data)
 {
     Q_UNUSED(obj);
 
-    static_cast<Frida *>(data)->onEnumerateDevicesReady(res);
+    static_cast<Plawnekjx *>(data)->onEnumerateDevicesReady(res);
 }
 
-void Frida::onEnumerateDevicesReady(GAsyncResult *res)
+void Plawnekjx::onEnumerateDevicesReady(GAsyncResult *res)
 {
     GError *error = nullptr;
-    FridaDeviceList *devices = frida_device_manager_enumerate_devices_finish(m_handle, res, &error);
+    PlawnekjxDeviceList *devices = plawnekjx_device_manager_enumerate_devices_finish(m_handle, res, &error);
     g_assert(error == nullptr);
 
-    gint count = frida_device_list_size(devices);
+    gint count = plawnekjx_device_list_size(devices);
     for (gint i = 0; i != count; i++) {
-        FridaDevice *device = frida_device_list_get(devices, i);
+        PlawnekjxDevice *device = plawnekjx_device_list_get(devices, i);
         onDeviceAdded(device);
         g_object_unref(device);
     }
@@ -115,17 +115,17 @@ void Frida::onEnumerateDevicesReady(GAsyncResult *res)
     g_object_unref(devices);
 }
 
-void Frida::onDeviceAddedWrapper(Frida *self, FridaDevice *deviceHandle)
+void Plawnekjx::onDeviceAddedWrapper(Plawnekjx *self, PlawnekjxDevice *deviceHandle)
 {
     self->onDeviceAdded(deviceHandle);
 }
 
-void Frida::onDeviceRemovedWrapper(Frida *self, FridaDevice *deviceHandle)
+void Plawnekjx::onDeviceRemovedWrapper(Plawnekjx *self, PlawnekjxDevice *deviceHandle)
 {
     self->onDeviceRemoved(deviceHandle);
 }
 
-void Frida::onDeviceAdded(FridaDevice *deviceHandle)
+void Plawnekjx::onDeviceAdded(PlawnekjxDevice *deviceHandle)
 {
     if (deviceHandle == m_localSystem->handle())
         return;
@@ -136,19 +136,19 @@ void Frida::onDeviceAdded(FridaDevice *deviceHandle)
     QMetaObject::invokeMethod(this, "add", Qt::QueuedConnection, Q_ARG(Device *, device));
 }
 
-void Frida::onDeviceRemoved(FridaDevice *deviceHandle)
+void Plawnekjx::onDeviceRemoved(PlawnekjxDevice *deviceHandle)
 {
-    QMetaObject::invokeMethod(this, "removeById", Qt::QueuedConnection, Q_ARG(QString, frida_device_get_id(deviceHandle)));
+    QMetaObject::invokeMethod(this, "removeById", Qt::QueuedConnection, Q_ARG(QString, plawnekjx_device_get_id(deviceHandle)));
 }
 
-void Frida::add(Device *device)
+void Plawnekjx::add(Device *device)
 {
     device->setParent(this);
     m_deviceItems.append(device);
     Q_EMIT deviceAdded(device);
 }
 
-void Frida::removeById(QString id)
+void Plawnekjx::removeById(QString id)
 {
     for (int i = 0; i != m_deviceItems.size(); i++) {
         auto device = m_deviceItems.at(i);

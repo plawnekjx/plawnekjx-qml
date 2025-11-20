@@ -1,4 +1,4 @@
-#include <frida-core.h>
+#include <plawnekjx-core.h>
 
 #include "applicationlistmodel.h"
 
@@ -16,15 +16,15 @@ static const int ApplicationIconsRole = Qt::UserRole + 3;
 struct EnumerateApplicationsRequest
 {
     ApplicationListModel *model;
-    FridaDevice *handle;
+    PlawnekjxDevice *handle;
 };
 
 ApplicationListModel::ApplicationListModel(QObject *parent) :
     QAbstractListModel(parent),
     m_isLoading(false),
-    m_scope(Frida::Scope::Minimal),
+    m_scope(Plawnekjx::Scope::Minimal),
     m_pendingRequest(nullptr),
-    m_mainContext(new MainContext(frida_get_main_context()))
+    m_mainContext(new MainContext(plawnekjx_get_main_context()))
 {
 }
 
@@ -57,7 +57,7 @@ void ApplicationListModel::refresh()
     auto handle = m_device->handle();
     g_object_ref(handle);
 
-    auto scope = static_cast<FridaScope>(m_scope);
+    auto scope = static_cast<PlawnekjxScope>(m_scope);
 
     m_mainContext->schedule([this, handle, scope] () { enumerateApplications(handle, scope); });
 }
@@ -78,7 +78,7 @@ void ApplicationListModel::setDevice(Device *device)
     hardRefresh();
 }
 
-void ApplicationListModel::setScope(Frida::Scope scope)
+void ApplicationListModel::setScope(Plawnekjx::Scope scope)
 {
     if (scope == m_scope)
         return;
@@ -131,13 +131,13 @@ QVariant ApplicationListModel::data(const QModelIndex &index, int role) const
 
 void ApplicationListModel::hardRefresh()
 {
-    FridaDevice *handle = nullptr;
+    PlawnekjxDevice *handle = nullptr;
     if (m_device != nullptr) {
         handle = m_device->handle();
         g_object_ref(handle);
     }
 
-    auto scope = static_cast<FridaScope>(m_scope);
+    auto scope = static_cast<PlawnekjxScope>(m_scope);
 
     m_mainContext->schedule([=] () { finishHardRefresh(handle, scope); });
 
@@ -150,7 +150,7 @@ void ApplicationListModel::hardRefresh()
     }
 }
 
-void ApplicationListModel::finishHardRefresh(FridaDevice *handle, FridaScope scope)
+void ApplicationListModel::finishHardRefresh(PlawnekjxDevice *handle, PlawnekjxScope scope)
 {
     m_identifiers.clear();
 
@@ -158,21 +158,21 @@ void ApplicationListModel::finishHardRefresh(FridaDevice *handle, FridaScope sco
         enumerateApplications(handle, scope);
 }
 
-void ApplicationListModel::enumerateApplications(FridaDevice *handle, FridaScope scope)
+void ApplicationListModel::enumerateApplications(PlawnekjxDevice *handle, PlawnekjxScope scope)
 {
     QMetaObject::invokeMethod(this, "beginLoading", Qt::QueuedConnection);
 
     if (m_pendingRequest != nullptr)
         m_pendingRequest->model = nullptr;
 
-    auto options = frida_application_query_options_new();
-    frida_application_query_options_set_scope(options, scope);
+    auto options = plawnekjx_application_query_options_new();
+    plawnekjx_application_query_options_set_scope(options, scope);
 
     auto request = g_slice_new(EnumerateApplicationsRequest);
     request->model = this;
     request->handle = handle;
     m_pendingRequest = request;
-    frida_device_enumerate_applications(handle, options, nullptr, onEnumerateReadyWrapper, request);
+    plawnekjx_device_enumerate_applications(handle, options, nullptr, onEnumerateReadyWrapper, request);
 
     g_object_unref(options);
 }
@@ -188,23 +188,23 @@ void ApplicationListModel::onEnumerateReadyWrapper(GObject *obj, GAsyncResult *r
     g_slice_free(EnumerateApplicationsRequest, request);
 }
 
-void ApplicationListModel::onEnumerateReady(FridaDevice *handle, GAsyncResult *res)
+void ApplicationListModel::onEnumerateReady(PlawnekjxDevice *handle, GAsyncResult *res)
 {
     m_pendingRequest = nullptr;
 
     QMetaObject::invokeMethod(this, "endLoading", Qt::QueuedConnection);
 
     GError *error = nullptr;
-    auto applicationHandles = frida_device_enumerate_applications_finish(handle, res, &error);
+    auto applicationHandles = plawnekjx_device_enumerate_applications_finish(handle, res, &error);
     if (error == nullptr) {
         QSet<QString> current;
         QList<Application *> added;
         QSet<QString> removed;
 
-        const int size = frida_application_list_size(applicationHandles);
+        const int size = plawnekjx_application_list_size(applicationHandles);
         for (int i = 0; i != size; i++) {
-            auto applicationHandle = frida_application_list_get(applicationHandles, i);
-            auto identifier = QString::fromUtf8(frida_application_get_identifier(applicationHandle));
+            auto applicationHandle = plawnekjx_application_list_get(applicationHandles, i);
+            auto identifier = QString::fromUtf8(plawnekjx_application_get_identifier(applicationHandle));
             current.insert(identifier);
             if (!m_identifiers.contains(identifier)) {
                 auto application = new Application(applicationHandle);

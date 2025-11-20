@@ -7,7 +7,7 @@ sources = [
   'application.cpp',
   'process.cpp',
   'maincontext.cpp',
-  'frida.cpp',
+  'plawnekjx.cpp',
   'spawnoptions.cpp',
   'script.cpp',
   'devicelistmodel.cpp',
@@ -23,7 +23,7 @@ moc_sources = qt.compile_moc(
     'device.h',
     'application.h',
     'process.h',
-    'frida.h',
+    'plawnekjx.h',
     'spawnoptions.h',
     'script.h',
     'devicelistmodel.h',
@@ -32,12 +32,12 @@ moc_sources = qt.compile_moc(
   ],
   dependencies: [qt_dep],
   extra_args: [
-    '-Muri=Frida',
+    '-Muri=Plawnekjx',
     '--output-json',
   ],
 )
 
-plugin_dir = get_option('libdir') / 'qml' / 'Frida'
+plugin_dir = get_option('libdir') / 'qml' / 'Plawnekjx'
 
 install_data('qmldir', install_dir: plugin_dir)
 
@@ -69,15 +69,15 @@ if host_machine.system() == 'darwin'
     '-Wl,-exported_symbol,_qt_plugin_instance',
   ]
 elif cpp.get_argument_syntax() != 'msvc'
-  symscript = 'frida-qml.version'
+  symscript = 'plawnekjx-qml.version'
   extra_link_args += '-Wl,--version-script,' + meson.current_source_dir() / symscript
   extra_link_depends += symscript
 endif
 
-shared_module('frida-qml', sources, moc_sources, qmltypes,
+shared_module('plawnekjx-qml', sources, moc_sources, qmltypes,
   link_args: extra_link_args,
   link_depends: extra_link_depends,
-  dependencies: [qt_dep, frida_core_dep],
+  dependencies: [qt_dep, plawnekjx_core_dep],
   install: true,
   install_dir: plugin_dir,
 )

@@ -1,9 +1,9 @@
-#include <frida-core.h>
+#include <plawnekjx-core.h>
 
 #include "devicelistmodel.h"
 
 #include "device.h"
-#include "frida.h"
+#include "plawnekjx.h"
 
 static const int DeviceNameRole = Qt::UserRole + 0;
 static const int DeviceIconRole = Qt::UserRole + 1;
@@ -12,10 +12,10 @@ static const int DeviceTypeRole = Qt::UserRole + 2;
 DeviceListModel::DeviceListModel(QObject *parent) :
     QAbstractListModel(parent)
 {
-    auto frida = Frida::instance();
-    m_devices = frida->deviceItems();
-    connect(frida, &Frida::deviceAdded, this, &DeviceListModel::onDeviceAdded);
-    connect(frida, &Frida::deviceRemoved, this, &DeviceListModel::onDeviceRemoved);
+    auto plawnekjx = Plawnekjx::instance();
+    m_devices = plawnekjx->deviceItems();
+    connect(plawnekjx, &Plawnekjx::deviceAdded, this, &DeviceListModel::onDeviceAdded);
+    connect(plawnekjx, &Plawnekjx::deviceRemoved, this, &DeviceListModel::onDeviceRemoved);
 }
 
 Device *DeviceListModel::get(int index) const

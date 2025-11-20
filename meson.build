@@ -1,4 +1,4 @@
-project('frida-qml', 'cpp',
+project('plawnekjx-qml', 'cpp',
   version: run_command(find_program('python3'), files('tools' / 'detect-version.py'),
     capture: true,
     check: true).stdout().strip(),
@@ -21,8 +21,8 @@ qt_dep = dependency('qt6',
     'Quick',
   ],
 )
-frida_core_dep = dependency('frida-core-1.0', default_options: [
-  'frida_version=' + meson.project_version(),
+plawnekjx_core_dep = dependency('plawnekjx-core-1.0', default_options: [
+  'plawnekjx_version=' + meson.project_version(),
   'compiler_backend=disabled',
 ])
 

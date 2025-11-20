@@ -1,25 +1,25 @@
-#include <frida-core.h>
+#include <plawnekjx-core.h>
 
 #include "plugin.h"
 
 #include "application.h"
 #include "device.h"
-#include "frida.h"
+#include "plawnekjx.h"
 #include "iconprovider.h"
 #include "process.h"
 #include "script.h"
 
 #include <qqml.h>
 
-static QObject *createFridaSingleton(QQmlEngine *engine, QJSEngine *scriptEngine)
+static QObject *createPlawnekjxSingleton(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine);
     Q_UNUSED(scriptEngine);
 
-    return Frida::instance();
+    return Plawnekjx::instance();
 }
 
-void FridaQmlPlugin::registerTypes(const char *uri)
+void PlawnekjxQmlPlugin::registerTypes(const char *uri)
 {
     qRegisterMetaType<QList<Application *>>("QList<Application *>");
     qRegisterMetaType<QList<Process *>>("QList<Process *>");
@@ -30,15 +30,15 @@ void FridaQmlPlugin::registerTypes(const char *uri)
     qRegisterMetaType<Script::Runtime>("Script::Runtime");
     qRegisterMetaType<ScriptInstance::Status>("ScriptInstance::Status");
 
-    qmlRegisterSingletonType<Frida>(uri, 1, 0, "Frida", createFridaSingleton);
+    qmlRegisterSingletonType<Plawnekjx>(uri, 1, 0, "Plawnekjx", createPlawnekjxSingleton);
 }
 
-void FridaQmlPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
+void PlawnekjxQmlPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
     Q_UNUSED(uri);
 
-    // Ensure Frida is initialized.
-    Frida::instance();
+    // Ensure Plawnekjx is initialized.
+    Plawnekjx::instance();
 
-    engine->addImageProvider("frida", IconProvider::instance());
+    engine->addImageProvider("plawnekjx", IconProvider::instance());
 }

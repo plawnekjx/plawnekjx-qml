@@ -1,7 +1,7 @@
-#ifndef FRIDAQML_PROCESS_H
-#define FRIDAQML_PROCESS_H
+#ifndef PLAWNEKJXQML_PROCESS_H
+#define PLAWNEKJXQML_PROCESS_H
 
-#include "fridafwd.h"
+#include "plawnekjxfwd.h"
 #include "iconprovider.h"
 
 #include <QObject>
@@ -18,7 +18,7 @@ class Process : public QObject
     QML_UNCREATABLE("Process objects cannot be instantiated from Qml");
 
 public:
-    explicit Process(FridaProcess *handle, QObject *parent = nullptr);
+    explicit Process(PlawnekjxProcess *handle, QObject *parent = nullptr);
     ~Process();
 
     unsigned int pid() const { return m_pid; }

@@ -34,7 +34,7 @@ def main(argv: list[str]):
         subprocess.run([
                            qt_libexecdir / "qmltyperegistrar",
                            f"--generate-qmltypes={qmltypes}",
-                           "--import-name=Frida",
+                           "--import-name=Plawnekjx",
                            "--major-version=1",
                            "--minor-version=0",
                            f"--foreign-types={foreign_types}",

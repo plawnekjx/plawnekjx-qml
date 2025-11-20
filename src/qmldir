@@ -1,5 +1,5 @@
-module Frida
-plugin frida-qml
-classname FridaQmlPlugin
+module Plawnekjx
+plugin plawnekjx-qml
+classname PlawnekjxQmlPlugin
 typeinfo plugins.qmltypes
 designersupported

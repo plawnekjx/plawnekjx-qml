@@ -1,9 +1,9 @@
-#ifndef FRIDAQML_PLUGIN_H
-#define FRIDAQML_PLUGIN_H
+#ifndef PLAWNEKJXQML_PLUGIN_H
+#define PLAWNEKJXQML_PLUGIN_H
 
 #include <QQmlExtensionPlugin>
 
-class FridaQmlPlugin : public QQmlExtensionPlugin
+class PlawnekjxQmlPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)

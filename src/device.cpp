@@ -1,4 +1,4 @@
-#include <frida-core.h>
+#include <plawnekjx-core.h>
 
 #include "device.h"
 
@@ -16,16 +16,16 @@
 
 static void deleteByteArray(gpointer data);
 
-Device::Device(FridaDevice *handle, QObject *parent) :
+Device::Device(PlawnekjxDevice *handle, QObject *parent) :
     QObject(parent),
     m_handle(handle),
-    m_id(frida_device_get_id(handle)),
-    m_name(frida_device_get_name(handle)),
-    m_type(static_cast<Device::Type>(frida_device_get_dtype(handle))),
+    m_id(plawnekjx_device_get_id(handle)),
+    m_name(plawnekjx_device_get_name(handle)),
+    m_type(static_cast<Device::Type>(plawnekjx_device_get_dtype(handle))),
     m_gcTimer(nullptr),
-    m_mainContext(new MainContext(frida_get_main_context()))
+    m_mainContext(new MainContext(plawnekjx_get_main_context()))
 {
-    auto serializedIcon = Frida::parseVariant(frida_device_get_icon(handle)).toMap();
+    auto serializedIcon = Plawnekjx::parseVariant(plawnekjx_device_get_icon(handle)).toMap();
     if (!serializedIcon.isEmpty())
         m_icon = IconProvider::instance()->add(serializedIcon);
 
@@ -63,7 +63,7 @@ ScriptInstance *Device::inject(Script *script, QString program, SpawnOptions *op
     if (instance == nullptr)
         return nullptr;
 
-    FridaSpawnOptions *optionsHandle;
+    PlawnekjxSpawnOptions *optionsHandle;
     if (options != nullptr) {
         optionsHandle = options->handle();
         g_object_ref(optionsHandle);
@@ -133,10 +133,10 @@ ScriptInstance *Device::createScriptInstance(Script *script, int pid)
     return instance;
 }
 
-void Device::performSpawn(QString program, FridaSpawnOptions *options, ScriptInstance *wrapper)
+void Device::performSpawn(QString program, PlawnekjxSpawnOptions *options, ScriptInstance *wrapper)
 {
     std::string programStr = program.toStdString();
-    frida_device_spawn(handle(), programStr.c_str(), options, nullptr, onSpawnReadyWrapper, wrapper);
+    plawnekjx_device_spawn(handle(), programStr.c_str(), options, nullptr, onSpawnReadyWrapper, wrapper);
     g_object_unref(options);
 }
 
@@ -151,7 +151,7 @@ void Device::onSpawnReadyWrapper(GObject *obj, GAsyncResult *res, gpointer data)
 void Device::onSpawnReady(GAsyncResult *res, ScriptInstance *wrapper)
 {
     GError *error = nullptr;
-    guint pid = frida_device_spawn_finish(handle(), res, &error);
+    guint pid = plawnekjx_device_spawn_finish(handle(), res, &error);
 
     if (error == nullptr) {
         QMetaObject::invokeMethod(wrapper, "onSpawnComplete", Qt::QueuedConnection,
@@ -170,7 +170,7 @@ void Device::onSpawnReady(GAsyncResult *res, ScriptInstance *wrapper)
 
 void Device::performResume(ScriptInstance *wrapper)
 {
-    frida_device_resume(handle(), wrapper->pid(), nullptr, onResumeReadyWrapper, wrapper);
+    plawnekjx_device_resume(handle(), wrapper->pid(), nullptr, onResumeReadyWrapper, wrapper);
 }
 
 void Device::onResumeReadyWrapper(GObject *obj, GAsyncResult *res, gpointer data)
@@ -184,7 +184,7 @@ void Device::onResumeReadyWrapper(GObject *obj, GAsyncResult *res, gpointer data
 void Device::onResumeReady(GAsyncResult *res, ScriptInstance *wrapper)
 {
     GError *error = nullptr;
-    frida_device_resume_finish(handle(), res, &error);
+    plawnekjx_device_resume_finish(handle(), res, &error);
 
     if (error == nullptr) {
         QMetaObject::invokeMethod(wrapper, "onResumeComplete", Qt::QueuedConnection);
@@ -326,13 +326,13 @@ SessionEntry::SessionEntry(Device *device, int pid, QObject *parent) :
     m_pid(pid),
     m_handle(nullptr)
 {
-    frida_device_attach(device->handle(), pid, nullptr, nullptr, onAttachReadyWrapper, this);
+    plawnekjx_device_attach(device->handle(), pid, nullptr, nullptr, onAttachReadyWrapper, this);
 }
 
 SessionEntry::~SessionEntry()
 {
     if (m_handle != nullptr) {
-        frida_session_detach(m_handle, nullptr, nullptr, nullptr);
+        plawnekjx_session_detach(m_handle, nullptr, nullptr, nullptr);
 
         g_signal_handlers_disconnect_by_func(m_handle, GSIZE_TO_POINTER(onDetachedWrapper), this);
 
@@ -365,7 +365,7 @@ void SessionEntry::onAttachReadyWrapper(GObject *obj, GAsyncResult *res, gpointe
 void SessionEntry::onAttachReady(GAsyncResult *res)
 {
     GError *error = nullptr;
-    m_handle = frida_device_attach_finish(m_device->handle(), res, &error);
+    m_handle = plawnekjx_device_attach_finish(m_device->handle(), res, &error);
     if (error == nullptr) {
         g_object_set_data(G_OBJECT(m_handle), "qsession", this);
 
@@ -382,7 +382,7 @@ void SessionEntry::onAttachReady(GAsyncResult *res)
     }
 }
 
-void SessionEntry::onDetachedWrapper(SessionEntry *self, int reason, FridaCrash * crash)
+void SessionEntry::onDetachedWrapper(SessionEntry *self, int reason, PlawnekjxCrash * crash)
 {
     Q_UNUSED(crash);
 
@@ -432,7 +432,7 @@ ScriptEntry::ScriptEntry(SessionEntry *session, ScriptInstance *wrapper, QObject
 ScriptEntry::~ScriptEntry()
 {
     if (m_handle != nullptr) {
-        frida_script_unload(m_handle, nullptr, nullptr, nullptr);
+        plawnekjx_script_unload(m_handle, nullptr, nullptr, nullptr);
 
         g_signal_handlers_disconnect_by_func(m_handle, GSIZE_TO_POINTER(onMessage), this);
 
@@ -441,7 +441,7 @@ ScriptEntry::~ScriptEntry()
     }
 }
 
-void ScriptEntry::updateSessionHandle(FridaSession *sessionHandle)
+void ScriptEntry::updateSessionHandle(PlawnekjxSession *sessionHandle)
 {
     m_sessionHandle = sessionHandle;
     start();
@@ -475,7 +475,7 @@ void ScriptEntry::enableDebugger(quint16 port)
   if (m_handle == nullptr)
     return;
 
-  frida_script_enable_debugger(m_handle, port, nullptr, nullptr, nullptr);
+  plawnekjx_script_enable_debugger(m_handle, port, nullptr, nullptr, nullptr);
 }
 
 void ScriptEntry::disableDebugger()
@@ -483,7 +483,7 @@ void ScriptEntry::disableDebugger()
   if (m_handle == nullptr)
     return;
 
-  frida_script_disable_debugger(m_handle, nullptr, nullptr, nullptr);
+  plawnekjx_script_disable_debugger(m_handle, nullptr, nullptr, nullptr);
 }
 
 void ScriptEntry::updateStatus(ScriptInstance::Status status)
@@ -538,23 +538,23 @@ void ScriptEntry::start()
 
         QByteArray code = m_code;
 
-        auto options = frida_script_options_new();
+        auto options = plawnekjx_script_options_new();
 
         if (!m_name.isEmpty()) {
             std::string name = m_name.toStdString();
-            frida_script_options_set_name(options, name.c_str());
+            plawnekjx_script_options_set_name(options, name.c_str());
         }
 
-        frida_script_options_set_runtime(options, static_cast<FridaScriptRuntime>(m_runtime));
+        plawnekjx_script_options_set_runtime(options, static_cast<PlawnekjxScriptRuntime>(m_runtime));
 
         if (m_code.startsWith(QUICKJS_BYTECODE_MAGIC)) {
             QByteArray *code = new QByteArray(m_code);
             GBytes *bytes = g_bytes_new_with_free_func(code->data(), code->size(), deleteByteArray, code);
-            frida_session_create_script_from_bytes(m_sessionHandle, bytes, options, nullptr,
+            plawnekjx_session_create_script_from_bytes(m_sessionHandle, bytes, options, nullptr,
                 onCreateFromBytesReadyWrapper, this);
         } else {
             std::string source = QString::fromUtf8(m_code).toStdString();
-            frida_session_create_script(m_sessionHandle, source.c_str(), options, nullptr,
+            plawnekjx_session_create_script(m_sessionHandle, source.c_str(), options, nullptr,
                 onCreateFromSourceReadyWrapper, this);
         }
 
@@ -590,7 +590,7 @@ void ScriptEntry::onCreateFromSourceReadyWrapper(GObject *obj, GAsyncResult *res
 void ScriptEntry::onCreateFromSourceReady(GAsyncResult *res)
 {
     GError *error = nullptr;
-    FridaScript *handle = frida_session_create_script_finish(m_sessionHandle, res, &error);
+    PlawnekjxScript *handle = plawnekjx_session_create_script_finish(m_sessionHandle, res, &error);
     onCreateComplete(&handle, &error);
 }
 
@@ -604,11 +604,11 @@ void ScriptEntry::onCreateFromBytesReadyWrapper(GObject *obj, GAsyncResult *res,
 void ScriptEntry::onCreateFromBytesReady(GAsyncResult *res)
 {
     GError *error = nullptr;
-    FridaScript *handle = frida_session_create_script_from_bytes_finish(m_sessionHandle, res, &error);
+    PlawnekjxScript *handle = plawnekjx_session_create_script_from_bytes_finish(m_sessionHandle, res, &error);
     onCreateComplete(&handle, &error);
 }
 
-void ScriptEntry::onCreateComplete(FridaScript **handle, GError **error)
+void ScriptEntry::onCreateComplete(PlawnekjxScript **handle, GError **error)
 {
     if (m_status == ScriptInstance::Status::Destroyed) {
         g_clear_object(handle);
@@ -619,13 +619,13 @@ void ScriptEntry::onCreateComplete(FridaScript **handle, GError **error)
     }
 
     if (*error == nullptr) {
-        m_handle = static_cast<FridaScript *>(g_steal_pointer(handle));
+        m_handle = static_cast<PlawnekjxScript *>(g_steal_pointer(handle));
         g_object_set_data(G_OBJECT(m_handle), "qscript", this);
 
         g_signal_connect_swapped(m_handle, "message", G_CALLBACK(onMessage), this);
 
         updateStatus(ScriptInstance::Status::Starting);
-        frida_script_load(m_handle, nullptr, onLoadReadyWrapper, this);
+        plawnekjx_script_load(m_handle, nullptr, onLoadReadyWrapper, this);
     } else {
         updateError(*error);
         updateStatus(ScriptInstance::Status::Error);
@@ -643,7 +643,7 @@ void ScriptEntry::onLoadReadyWrapper(GObject *obj, GAsyncResult *res, gpointer d
 void ScriptEntry::onLoadReady(GAsyncResult *res)
 {
     GError *error = nullptr;
-    frida_script_load_finish(m_handle, res, &error);
+    plawnekjx_script_load_finish(m_handle, res, &error);
 
     if (m_status == ScriptInstance::Status::Destroyed) {
         g_clear_error(&error);
@@ -667,7 +667,7 @@ void ScriptEntry::performPost(QJsonValue value)
         ? QJsonDocument(value.toObject())
         : QJsonDocument(value.toArray());
     auto json = document.toJson(QJsonDocument::Compact);
-    frida_script_post(m_handle, json.data(), nullptr);
+    plawnekjx_script_post(m_handle, json.data(), nullptr);
 }
 
 void ScriptEntry::onMessage(ScriptEntry *self, const gchar *message, GBytes *data)
